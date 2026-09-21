@@ -5,8 +5,8 @@ from time import perf_counter as now
 def main(N, encoding, print_board):
     encodings = {
         "sequential": (at_least_one_common, at_most_one_sequential),
-        "binary": (None, None),
-        "commander": (None, None),
+        "binary": (at_least_one_common, at_most_one_binary),
+        "commander": (None, at_most_one_commander),
     }
     at_least_one, at_most_one = encodings[encoding]
 
@@ -22,21 +22,30 @@ def main(N, encoding, print_board):
         ########## Row clauses
         row = board[i*N : (i+1)*N]
 
-        alo_row = at_least_one(row, N)
-        amo_row, s_base = at_most_one(row, N, s_base)
+        if (not encoding == "commander"):
+            alo_row = at_least_one(row, N)
+            amo_row, s_base = at_most_one(row, N, s_base)
 
-        clauses.append(alo_row)
-        clauses.extend(amo_row)
+            clauses.append(alo_row)
+            clauses.extend(amo_row)
+
+        else:
+            eo_row, s_base = exactly_one_commander(row, N, s_base) 
+            clauses.extend(eo_row)
 
         ########## Column clauses
         col = [board[i+r*N] for r in range(N)] # i-th column
 
-        alo_col = at_least_one(col, N)
-        amo_col, s_base = at_most_one(col, N, s_base)
+        if (not encoding == "commander"):
+            alo_col = at_least_one(col, N)
+            amo_col, s_base = at_most_one(col, N, s_base)
 
-        clauses.append(alo_col)
-        clauses.extend(amo_col)
+            clauses.append(alo_col)
+            clauses.extend(amo_col)
 
+        else:
+            eo_col, s_base = exactly_one_commander(col, N, s_base) 
+            clauses.extend(eo_col)
 
     ########## Diagonal clauses
     # Identify the diagonals first
