@@ -34,3 +34,26 @@ def at_most_one_sequential(X, N, s_base):
     clauses.append([-X[N-1], -(s_N-1)])
 
     return clauses, s_N
+
+#--- Binary
+def at_most_one_binary(X, N, s_base):
+    """ 
+    For each variable set X, implement a logical bit string long enough to encode |X| values, 
+    whose value will represent the index of the variable that is true.
+    Each assignment of bits can represent at most one variable.
+    """
+    clauses = []
+
+    K = (N-1).bit_length() # = ceil(log_2(N)): minimum bits needed to represent |X| values
+    for i in range(N):
+        # For each variable, build the clauses to enfore that, if that variable were true,
+        # the utility variables representing the bit string should match the bits of that variable's index
+        for k in range(K):
+            bit = (i >> k) & 1  # get k-th bit of a variable's idex
+
+            if (bit == 1):
+                clauses.append([-X[i], s_base+k])
+            else:
+                clauses.append([-X[i], -(s_base+k)])
+
+    return clauses, s_base+K
