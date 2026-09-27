@@ -75,19 +75,6 @@ def at_most_one_commander(X, N, s_base):
 
     return clauses, s_base
 
-def exactly_one_commander(X, N, s_base):
-    """
-    Integrate ALO shortcut by enforcing it upon the top-level commanders and letting logic propagate downwards
-    """
-    clauses = []
-
-    top_commanders, s_base = at_most_one_commander_recurse(X, s_base, clauses)
-    top_level_alo = at_least_one_common(top_commanders, len(top_commanders))
-
-    clauses.append(top_level_alo)
-
-    return clauses, s_base
-
 def at_most_one_commander_recurse(X, s_base, clauses):
     # When recursion begins with enough variables for only 1 group, no longer need recursive encodings,
     # because we no longer need to enforce inter-group AMO
@@ -152,3 +139,32 @@ def at_most_one_commander_group(X, commander):
         pairwise_clauses.append([-X[2], -X[0]])
 
     return pairwise_clauses
+
+########## EO ###########
+#--- Sequenatial
+def exactly_one_sequential(X, N, s_base):
+    clauses, s_base = at_most_one_sequential(X, N, s_base)
+    clauses.append(at_least_one_common(X, N))
+
+    return clauses, s_base
+
+#--- Binary
+def exactly_one_binary(X, N, s_base):
+    clauses, s_base = at_most_one_binary(X, N, s_base)
+    clauses.append(at_least_one_common(X, N))
+
+    return clauses, s_base
+
+#--- Commander
+def exactly_one_commander(X, N, s_base):
+    """
+    Integrate ALO shortcut by enforcing it upon the top-level commanders and letting logic propagate downwards
+    """
+    clauses = []
+
+    top_commanders, s_base = at_most_one_commander_recurse(X, s_base, clauses)
+    top_level_alo = at_least_one_common(top_commanders, len(top_commanders))
+
+    clauses.append(top_level_alo)
+
+    return clauses, s_base
