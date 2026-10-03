@@ -2,13 +2,13 @@ from sat_encodings import *
 from pysat.solvers import Glucose3
 from time import perf_counter as now
 
-def main(N, encoding, print_board, self_defined_encodings=False):
+def main(N, encodingType, print_board, meta_q=None, result_q=None):
     encodings = {
         "sequential": (exactly_one_sequential, at_most_one_sequential),
         "binary": (exactly_one_binary, at_most_one_binary),
         "commander": (exactly_one_commander, at_most_one_commander),
     }
-    exactly_one, at_most_one = encodings[encoding]
+    exactly_one, at_most_one = encodings[encodingType]
 
     ########## Build clauses ##################################################################################################################################
     t0 = now()
@@ -52,32 +52,35 @@ def main(N, encoding, print_board, self_defined_encodings=False):
 
         clauses.extend(amo_diag)
 
+    #####################################################################################################################################################
+    if meta_q is not None:
+        meta_q.put((len(clauses), s_base))
+
     ########## Solve ####################################################################################################################################
     t1 = now()
 
     solver = Glucose3()
     solver.append_formula(clauses)
 
-    if solver.solve():
-        model = solver.get_model() # the solution
+    result = solver.solve()      # the parent process enforces the timeout
 
-        if print_board:
-            for r in range(N):
-                row = ""
-                for c in range(N):
-                    if (model[r*N+c] < 0):
-                        row += ". "
-                    else: row += "Q "
-                print(row)
+    t2 = now()                   # stop the clock before printing the board
 
-    else: print("UNSAT")
+    model = solver.get_model() if result else None
+    solver.delete()
 
-    t2 = now()
+    if print_board:
+        for r in range(N):
+            row = ""
+            for c in range(N):
+                if (model[r*N+c] < 0):
+                    row += ". "
+                else: row += "Q "
+            print(row)
 
-    print("Num clauses: ", len(clauses))
-    print("Time to build clauses: ", round(t1-t0, 7))
-    print("Time to solve: ",         round(t2-t1, 7))
-    print("Total time: ",            round(t2-t0, 7))
+    if result_q:
+        result_q.put((len(clauses), s_base, t1-t0, t2-t1, t2-t0, result))
+    return len(clauses), s_base, t1-t0, t2-t1, t2-t0, result
 
 
 if __name__ == "__main__":
