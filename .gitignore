@@ -1,5 +1,9 @@
 report/*
 __pycache__/*
 other_solvers/__pycache__/*
+other_solvers/gurobi.py
 run.sh
 .vscode/*
+experiment_results/results_copy.csv
+experiment_results/results_rounded_copy.csv
+experiment_results/method_results_copy.csv
